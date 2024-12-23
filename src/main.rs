@@ -71,15 +71,24 @@ impl Player {
 
         let mut total = 0;
 
-        for card in held_cards {
+        let mut ace_count = 0;
 
-            // TODO: improve ace value checks
+        for card in held_cards {
             
             match card.value.as_str() {
-                "A" => if total + 11 > 21 { total += 1} else {total += 11},
+                "A" => {
+                    total += 11;
+                    ace_count += 1;
+                },
                 "J" | "Q" | "K" => total += 10,
                 _ => total += card.value.parse::<i32>().expect("Error parsing card value!")
             }
+        }
+
+        // Set aces to 1 if total exceeds 21
+        while ace_count > 0 && total > 21 {
+            total -= 10;
+            ace_count -= 1;
         }
 
         return total;
