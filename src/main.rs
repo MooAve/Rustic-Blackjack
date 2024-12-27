@@ -27,15 +27,30 @@ struct Player {
 }
 
 impl Player {
+    fn _print_card_ends(&self) {
+        // Print the top/bottom for 'num_cards' cards
+
+        for _card in &self.cards {
+            print!("  |--------|");
+        }
+
+        print!("\n");
+    }
+
     fn print_cards(&self) {
         // Prints out all of a player's currently-held cards
 
         let held_cards = &self.cards[..];
 
+        // Print the "top" of each card in player's hand
+        if self.name == "Human".to_string() {
+            self._print_card_ends();
+        }
+
         for card in held_cards {
 
             if card.hidden {
-                print!("  |XXXXXXXXX|");
+                print!("  |XXXXXXXX|");
                 continue;
             }
 
@@ -48,10 +63,25 @@ impl Player {
                 Suit::Hearts => print!("{}", '♥')
             };
 
-            print!("    {} |", card.value.as_str());
+            let card_val = card.value.as_str();
+
+            // Use one less space when the value is 10 to account for the extra digit
+            if card_val == "10" {
+                print!("   {} |", card_val);
+            } else {
+                print!("    {} |", card_val);
+            }
         }
 
         print!("\n");
+
+        // Print the "bottom" of each card
+        if self.name == "Dealer".to_string() {
+
+            self._print_card_ends();
+ 
+            print!("\n");
+        }
     }
 
     fn draw_starting_hand(&mut self) {
