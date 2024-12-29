@@ -125,6 +125,12 @@ impl Player {
     }
 }
 
+enum RoundStatus {
+    Win,
+    Loss,
+    Draw
+}
+
 fn yes_no() -> bool {
     let mut ans = String::new();
 
@@ -140,6 +146,28 @@ fn yes_no() -> bool {
             "n" | "N" => return false,
             _ => println!("Please enter y or n"),
         }
+    }
+}
+
+fn read_num() -> i32 {
+    // Read and return a user-inputted number
+
+    let mut ans = String::new();
+
+    loop {
+        io::stdin()
+            .read_line(&mut ans)
+            .expect("Failed to read line");
+
+        let ans: i32 = match ans.trim().parse() {
+            Ok(num) => num,
+            Err(_) => {
+                println!("Please enter a positive integer value!");
+                continue;
+            }
+        };
+
+        return ans;
     }
 }
 
@@ -173,6 +201,45 @@ fn draw_card(hidden : bool) -> Card{
 
 fn play_game() {
     
+    // Ask for starting number of chips
+    println!("How many chips would you like to start off?");
+
+    let mut chips = read_num();
+
+    loop {
+        println!("How many chips would you like to bet?");
+    
+        let bet = read_num();
+
+        chips -= bet;
+
+        println!("Betting {bet} chips, you now have {chips} chips.");
+
+        match play_round() {
+            RoundStatus::Loss => chips -= bet,
+            RoundStatus::Win => chips += bet * 2,
+            RoundStatus::Draw => chips += bet,
+        }
+
+        if chips <= 0 {
+            println!("You're all outta chips!");
+            return;
+        }
+
+        println!("You now have {chips} chips. Would you like to play another round? Y/N");
+
+        match yes_no() {
+            false => {
+                println!("You finished with {chips} chips!");
+                return;
+            },
+            true => continue,
+        }
+    }
+}
+
+fn play_round() -> RoundStatus {
+
     // Initialize human player and computer dealer
     let mut human = Player {
         name: "Human".to_string(),
@@ -183,7 +250,7 @@ fn play_game() {
         name: "Dealer".to_string(),
         cards: Vec::new()
     };
-
+    
     // Draw player's starting hands
     human.draw_starting_hand();
     dealer.draw_starting_hand();
@@ -250,17 +317,29 @@ fn play_game() {
     // Check which player one
     if player_total > 21 && dealer_total > 21 {
         println!("Both players busted. It's a tie!");
+        return RoundStatus::Draw;
     } else if player_total > 21 {
         println!("Player busted. You lost!");
+        return RoundStatus::Loss;
     } else if dealer_total > 21 {
         println!("Dealer busted. You win!");
+        return RoundStatus::Win;
     } else {
         println!("Dealer has {dealer_total}, Player has {player_total}");
 
         match player_total.cmp(&dealer_total) {
-            Ordering::Less => println!("Dealer wins!"),
-            Ordering::Greater => println!("Player wins!"),
-            Ordering::Equal => println!("It's a tie!")
+            Ordering::Less => {
+                println!("Dealer wins!");
+                return RoundStatus::Loss;
+            },
+            Ordering::Greater => {
+                println!("Player wins!");
+                return RoundStatus::Win;
+            },
+            Ordering::Equal => {
+                println!("It's a tie!");
+                return RoundStatus::Draw;
+            }
         };
     }
 }
